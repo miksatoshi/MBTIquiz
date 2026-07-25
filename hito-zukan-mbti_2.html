@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ヒト図鑑 MBTI版 — Field Notes on People</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 24px 12px; background: #E4DCC4; }
+  #hz-root {
+    --paper: #EFE9D8;
+    --paper-dark: #E4DCC4;
+    --ink: #232922;
+    --ink-soft: #4B5245;
+    --accent: #B8863B;
+    --accent-soft: #D9B77A;
+    --moss: #4B5D45;
+    --moss-deep: #2F3B2B;
+    --card: #F7F3E7;
+    --line: #C9BFA0;
+    --danger: #8C4A3B;
+    --nt: #4B5D8C;
+    --nf: #7A5D8C;
+    --sj: #4B5D45;
+    --sp: #B8863B;
+
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    max-width: 920px;
+    margin: 0 auto;
+  }
+  #hz-root * { box-sizing: border-box; }
+
+  #hz-root .hz-header {
+    background: var(--moss-deep);
+    color: var(--paper);
+    padding: 28px 28px 20px;
+    background-image:
+      radial-gradient(circle at 90% 10%, rgba(216,183,122,0.12), transparent 40%),
+      radial-gradient(circle at 10% 90%, rgba(216,183,122,0.08), transparent 40%);
+  }
+  #hz-root .hz-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin: 0 0 6px;
+  }
+  #hz-root h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  #hz-root .hz-sub {
+    font-size: 13px;
+    color: var(--paper-dark);
+    opacity: 0.85;
+    margin: 0;
+    max-width: 58ch;
+    line-height: 1.6;
+  }
+
+  #hz-root .hz-tabs {
+    display: flex;
+    background: var(--paper-dark);
+    border-bottom: 1px solid var(--line);
+  }
+  #hz-root .hz-tab {
+    flex: 1;
+    padding: 13px 8px;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    color: var(--ink-soft);
+    border-right: 1px solid var(--line);
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
+  }
+  #hz-root .hz-tab:last-child { border-right: none; }
+  #hz-root .hz-tab.active {
+    background: var(--paper);
+    color: var(--moss-deep);
+    font-weight: 700;
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+  #hz-root .hz-tab:hover:not(.active) { background: rgba(184,134,59,0.08); }
+
+  #hz-root .hz-panel { padding: 24px 28px 32px; min-height: 320px; }
+  #hz-root .hz-panel[hidden] { display: none; }
+
+  /* ---- 軸の説明 ---- */
+  #hz-root .hz-axes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 640px) { #hz-root .hz-axes { grid-template-columns: repeat(2, 1fr); } }
+  #hz-root .hz-axis-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
+  #hz-root .hz-axis-card b {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--moss-deep);
+    margin-bottom: 3px;
+  }
+
+  #hz-root .hz-group-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin: 18px 0 8px;
+    text-transform: uppercase;
+  }
+  #hz-root .hz-group-label:first-child { margin-top: 0; }
+
+  #hz-root .hz-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  @media (max-width: 720px) { #hz-root .hz-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  #hz-root .hz-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--group-color, var(--accent));
+    border-radius: 4px;
+    padding: 12px 12px 10px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  #hz-root .hz-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(47,59,43,0.12); }
+  #hz-root .hz-card-code {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--moss-deep);
+  }
+  #hz-root .hz-card-name {
+    font-family: 'Fraunces', serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    margin: 2px 0 6px;
+  }
+  #hz-root .hz-card-desc {
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  #hz-root .hz-detail {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin-top: 18px;
+  }
+  #hz-root .hz-detail h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    margin: 0 0 2px;
+    color: var(--moss-deep);
+  }
+  #hz-root .hz-detail .hz-code-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 12px;
+  }
+  #hz-root .hz-detail-row { margin-bottom: 12px; }
+  #hz-root .hz-detail-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--moss);
+    display: block;
+    margin-bottom: 3px;
+  }
+  #hz-root .hz-detail-text { font-size: 13.5px; line-height: 1.7; margin: 0; }
+  #hz-root .hz-quote { font-style: italic; color: var(--ink-soft); border-left: 2px solid var(--accent-soft); padding-left: 10px; }
+  #hz-root .hz-ng { color: var(--danger); }
+  #hz-root .hz-close-btn {
+    margin-top: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 6px 12px;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+  #hz-root .hz-close-btn:hover { background: var(--paper-dark); }
+
+  /* ---- クイズ ---- */
+  #hz-root .hz-quiz-meta { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--ink-soft); margin-bottom: 10px; }
+  #hz-root .hz-scene {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--moss);
+    border-radius: 4px;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+  #hz-root .hz-axis-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 10.5px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+  }
+  #hz-root .hz-options { display: grid; gap: 8px; margin-bottom: 14px; }
+  #hz-root .hz-opt {
+    text-align: left;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 11px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  #hz-root .hz-opt:hover { border-color: var(--accent); }
+  #hz-root .hz-opt.correct { background: #E4EBDD; border-color: var(--moss); }
+  #hz-root .hz-opt.wrong { background: #F1DFDA; border-color: var(--danger); }
+  #hz-root .hz-opt:disabled { cursor: default; }
+
+  #hz-root .hz-reveal { background: var(--paper-dark); border-radius: 4px; padding: 14px 16px; font-size: 13px; line-height: 1.8; margin-bottom: 14px; }
+  #hz-root .hz-reveal strong { color: var(--moss-deep); }
+
+  #hz-root .hz-nav-row { display: flex; gap: 8px; justify-content: flex-end; }
+  #hz-root .hz-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11.5px;
+    background: var(--moss-deep);
+    color: var(--paper);
+    border: none;
+    border-radius: 3px;
+    padding: 9px 16px;
+    cursor: pointer;
+  }
+  #hz-root .hz-btn:hover { background: var(--moss); }
+  #hz-root .hz-btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  #hz-root .hz-btn.ghost:hover { background: var(--paper-dark); }
+
+  /* ---- 観察日記 ---- */
+  #hz-root .hz-log-form { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; margin-bottom: 20px; }
+  #hz-root .hz-log-form label {
+    font-family: 'Space Mono', monospace; font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--moss); display: block; margin-bottom: 4px;
+  }
+  #hz-root .hz-log-form textarea {
+    width: 100%; min-height: 70px; font-family: 'Inter', sans-serif; font-size: 13px;
+    border: 1px solid var(--line); border-radius: 3px; padding: 8px 10px; resize: vertical;
+    margin-bottom: 12px; background: var(--paper); color: var(--ink);
+  }
+  #hz-root .hz-log-form select {
+    font-family: 'Inter', sans-serif; font-size: 13px; padding: 7px 8px;
+    border: 1px solid var(--line); border-radius: 3px; background: var(--paper); color: var(--ink); margin-bottom: 12px;
+  }
+  #hz-root .hz-stats { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  #hz-root .hz-stat {
+    background: var(--paper-dark); border-radius: 3px; padding: 5px 9px;
+    font-family: 'Space Mono', monospace; font-size: 10.5px; color: var(--moss-deep);
+  }
+  #hz-root .hz-entry {
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--accent-soft);
+    border-radius: 4px; padding: 12px 16px; margin-bottom: 10px;
+  }
+  #hz-root .hz-entry-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  #hz-root .hz-entry-type { font-family: 'Space Mono', monospace; font-size: 10.5px; color: var(--accent); font-weight: 700; }
+  #hz-root .hz-entry-date { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--ink-soft); }
+  #hz-root .hz-entry-text { font-size: 13px; line-height: 1.7; margin: 0; white-space: pre-wrap; }
+  #hz-root .hz-entry-del { background: none; border: none; color: var(--ink-soft); font-size: 11px; cursor: pointer; font-family: 'Space Mono', monospace; padding: 0; margin-top: 6px; }
+  #hz-root .hz-entry-del:hover { color: var(--danger); }
+  #hz-root .hz-empty { font-size: 12.5px; color: var(--ink-soft); font-style: italic; padding: 20px 0; text-align: center; }
+  #hz-root .hz-loading { font-size: 12px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<div id="hz-root">
+  <div class="hz-header">
+    <p class="hz-eyebrow">Field Notes on People — MBTI Edition</p>
+    <h1>ヒト図鑑 MBTI版</h1>
+    <p class="hz-sub">外向/内向、感覚/直観、思考/感情、判断/知覚。4つの軸の組み合わせで生まれる16タイプを手がかりに、身近な人の考え方のクセを読み解く練習帳です。</p>
+  </div>
+
+  <div class="hz-tabs">
+    <button class="hz-tab active" data-tab="ency">図鑑</button>
+    <button class="hz-tab" data-tab="quiz">観察クイズ</button>
+    <button class="hz-tab" data-tab="log">観察日記</button>
+  </div>
+
+  <div class="hz-panel" id="hz-panel-ency"></div>
+  <div class="hz-panel" id="hz-panel-quiz" hidden></div>
+  <div class="hz-panel" id="hz-panel-log" hidden></div>
+</div>
+
+<script>
+(function(){
+  const root = document.getElementById('hz-root');
+
+  const GROUP_COLOR = { NT: 'var(--nt)', NF: 'var(--nf)', SJ: 'var(--sj)', SP: 'var(--sp)' };
+  const GROUP_LABEL = {
+    NT: 'NT — 理屈で世界を組み立てる',
+    NF: 'NF — 意味と可能性を追う',
+    SJ: 'SJ — 秩序と責任を守る',
+    SP: 'SP — 今この瞬間を生きる'
+  };
+
+  const TYPES = [
+    { code:'INTJ', group:'NT', name:'設計者', short:'頭の中で長期戦略を組み立てる。効率と論理を最優先する。',
+      value:'独自のビジョンと合理性。無駄なプロセスや根拠のない慣習を嫌う。',
+      pattern:'物事を体系立てて考え、先の展開まで読んでから動く。感情論より筋道を重視。',
+      quote:'「それ、そもそも必要ですか?」「もっと効率的なやり方があります」',
+      good:'結論だけでなく理由・データを添える。感情的な圧より論理で話す。',
+      bad:'根拠のない「みんなそうしてるから」で押し切ろうとする。'},
+    { code:'INTP', group:'NT', name:'探究者', short:'理論やパターンの解明そのものに没頭する。好奇心の塊。',
+      value:'知的な正確さと一貫性。物事の仕組みを理解すること自体が喜び。',
+      pattern:'結論を急がず、あらゆる角度から検証したくなる。実行より分析に時間を使いがち。',
+      quote:'「それって本当にそうなんですか?」「別の見方もできますよね」',
+      good:'考える時間を確保する。議論を「攻撃」ではなく「探究」として楽しむ姿勢を見せる。',
+      bad:'結論を急かして「とりあえずやって」で切り上げる。'},
+    { code:'ENTJ', group:'NT', name:'統括者', short:'目標達成のために大胆に人と組織を動かす。',
+      value:'成果と効率。曖昧な状態を嫌い、意思決定と実行のスピードを重視する。',
+      pattern:'ゴールから逆算して計画し、周囲を巻き込みながら推進する。停滞に苛立ちやすい。',
+      quote:'「で、いつまでにやるんですか?」「それ、誰が責任者ですか?」',
+      good:'決定権や進め方の裁量を渡す。意見は簡潔に、結論から伝える。',
+      bad:'決定を先延ばしにしたり、根拠のない遠慮で議論を止める。'},
+    { code:'ENTP', group:'NT', name:'挑発者', short:'議論と新しいアイデアで刺激を求める。常識を疑うのが好き。',
+      value:'可能性と知的スリル。決まりきったやり方に安住することを退屈だと感じる。',
+      pattern:'あえて反対意見を出して議論を面白くしようとする。飽きっぽく見えるが本人は真剣。',
+      quote:'「あえて逆から考えるとどうですか?」「それ、本当に前提から正しいんでしたっけ」',
+      good:'アイデア出しの相手として頼る。反論を人格攻撃と捉えず議論として受け止める。',
+      bad:'「茶々を入れないで」と最初のアイデア段階で議論の芽を摘む。'},
+    { code:'INFJ', group:'NF', name:'洞察者', short:'人の可能性や意味を静かに見抜く。理想と共感を併せ持つ。',
+      value:'意味のあるつながりと成長。表面的な会話より本質的な対話を求める。',
+      pattern:'相手の言葉の奥にある感情や意図を読み取ろうとする。一人の時間で内省してエネルギーを蓄える。',
+      quote:'「本当はどう思ってるんですか?」「それって何のためにやってるんでしょうね」',
+      good:'一対一でじっくり話す時間を作る。表面的な社交よりも本音の対話を大切にする。',
+      bad:'大人数の場でいきなり本音を求めたり、プライベートに土足で踏み込む。'},
+    { code:'INFP', group:'NF', name:'夢想者', short:'内なる価値観と理想に忠実。人の気持ちに深く共感する。',
+      value:'誠実さと自分らしさ。自分の価値観に反することには強く抵抗する。',
+      pattern:'表向き穏やかでも、内面に強いこだわりを持つ。批判されると本人以上に深く傷つく。',
+      quote:'「それ、なんか違う気がします」「自分としてはこう思うんですけど」',
+      good:'価値観や気持ちを尋ねてから進める。否定するときも人格ではなく行動にフォーカスする。',
+      bad:'「気にしすぎ」と感情を軽視したり、価値観を頭ごなしに否定する。'},
+    { code:'ENFJ', group:'NF', name:'牽引者', short:'人の成長を後押しし、周りを鼓舞する。',
+      value:'他者の可能性を引き出すこと。チームや関係性全体の調和と成長を大事にする。',
+      pattern:'相手の感情の変化に敏感で、場の空気を積極的に整えようとする。頼られると力を発揮する。',
+      quote:'「みんなでもっと良くしていきましょう」「〇〇さんならできますよ」',
+      good:'感謝や貢献をはっきり言葉で伝える。役割やリーダーシップを任せる。',
+      bad:'感情的な気配りを「余計なお世話」として突き放す。'},
+    { code:'ENFP', group:'NF', name:'着火役', short:'可能性とアイデアに興奮し、人を巻き込む。',
+      value:'自由な発想とつながり。新しい可能性を見つけると一気にエネルギーが上がる。',
+      pattern:'興味の対象がころころ変わって見えるが、根底では「意味」や「人とのつながり」を一貫して追っている。',
+      quote:'「これめっちゃ良くないですか!?」「一緒にやりましょうよ」',
+      good:'アイデアをまず肯定してから一緒に検討する。細かい手順より熱量を尊重する。',
+      bad:'思いつきを頭ごなしに「非現実的」と切り捨てる。'},
+    { code:'ISTJ', group:'SJ', name:'検証者', short:'事実と実績に基づき、決めたルールを守り抜く。責任感が強い。',
+      value:'信頼性と一貫性。約束したことは必ず守る、守らせるという規律を重んじる。',
+      pattern:'過去の経験や実績を根拠に判断する。感覚的な思いつきの変更を嫌う。',
+      quote:'「前例はどうなってますか?」「決めたことはやりましょう」',
+      good:'変更するときは根拠と手順を明確に示す。約束や締切をきちんと守る。',
+      bad:'「ノリで」「とりあえず」で急に方針を変える。'},
+    { code:'ISFJ', group:'SJ', name:'守り手', short:'気配りと献身。目立たず人を支えることに喜びを感じる。',
+      value:'誰かの役に立つこと。派手さより着実な貢献を大事にする。',
+      pattern:'頼まれると断りにくく、自分のキャパを超えても抱え込みがち。感謝されると静かに満たされる。',
+      quote:'「大丈夫です、やっておきます」「〇〇さんのために準備しておきました」',
+      good:'具体的に感謝を伝える。抱え込みすぎていないか気にかけて声をかける。',
+      bad:'献身を当たり前として、感謝を言葉にしない。'},
+    { code:'ESTJ', group:'SJ', name:'統率者', short:'組織立てて物事を進める。効率と秩序を重んじるリーダー。',
+      value:'秩序と成果。決めたルールとスケジュール通りに物事が進むことに安心感がある。',
+      pattern:'役割分担や手順を明確にしたがる。曖昧な指示や場当たり的な進行に苛立つ。',
+      quote:'「担当は誰ですか?」「期限までにここまでやりましょう」',
+      good:'指示や依頼は具体的に、期限つきで伝える。役割をはっきりさせる。',
+      bad:'「なんとなく空気で察してほしい」という曖昧な進め方をする。'},
+    { code:'ESFJ', group:'SJ', name:'世話役', short:'周囲の調和と気配りに長ける。人をまとめるのが得意。',
+      value:'関係性の温かさと調和。場がギスギスすることを何より避けたい。',
+      pattern:'周りの機嫌や体調に敏感で、自然と気配りしてしまう。対立や批判を苦手とする。',
+      quote:'「みんな大丈夫ですか?」「せっかくだから仲良くやりましょう」',
+      good:'感謝を具体的に伝え、場の雰囲気づくりを頼る。対立が起きたときはフォローする。',
+      bad:'本人の気配りを利用するばかりで、気にかけ返さない。'},
+    { code:'ISTP', group:'SP', name:'職人', short:'手を動かしながら仕組みを理解する。冷静で実践的。',
+      value:'実用性と自由。理屈より「実際どう動くか」を確かめてから納得する。',
+      pattern:'言葉で説明されるより、自分で試して理解するタイプ。干渉されすぎると距離を置く。',
+      quote:'「とりあえずやってみますね」「理屈はいいので実物見せてください」',
+      good:'まず自由にやらせてみる。細かい進捗報告を強要しすぎない。',
+      bad:'逐一の報告や過程の説明を執拗に求める。'},
+    { code:'ISFP', group:'SP', name:'表現者', short:'自分の感性・美意識を静かに大切にする。柔軟で自由を好む。',
+      value:'自分らしい表現と穏やかな自由。競争や評価そのものにはあまり関心がない。',
+      pattern:'主張は控えめだが、好き嫌いや美意識ははっきりしている。無理強いされることに弱く抵抗する。',
+      quote:'「それは自分にはちょっと合わないかも」「好きにやらせてもらえたら」',
+      good:'本人のペースや好みを尊重する。評価や競争を無理に持ち込まない。',
+      bad:'「もっと積極的にアピールしなよ」と本人の気質を否定するアドバイスをする。'},
+    { code:'ESTP', group:'SP', name:'実行者', short:'今この瞬間の行動とスリルを楽しむ。臨機応変。',
+      value:'行動と結果がすべて。考えすぎるより動きながら調整する方が性に合う。',
+      pattern:'計画よりもその場の判断力で乗り切るのが得意。長い会議や理屈だけの議論を退屈に感じる。',
+      quote:'「とりあえずやってみましょう」「考えてても始まらないですよ」',
+      good:'まず動かせる裁量を渡す。長い説明より要点だけ伝える。',
+      bad:'細かい計画や手順書を隅々まで守らせようとする。'},
+    { code:'ESFP', group:'SP', name:'盛り上げ役', short:'場を明るくし、今を全力で楽しむ。',
+      value:'今この瞬間の楽しさと人とのつながり。深刻になりすぎる空気を苦手とする。',
+      pattern:'場の空気を敏感に察知して明るくしようとする。将来の計画より「今日をどう楽しむか」に意識が向く。',
+      quote:'「せっかくだから楽しみましょうよ」「それより今日どうする?」',
+      good:'場を盛り上げてくれることに感謝を伝える。深刻な話は少人数・落ち着いた場で。',
+      bad:'楽しもうとする姿勢を「不真面目」と決めつける。'}
+  ];
+
+  const AXES = [
+    { key:'EI', title:'E / I', desc:'エネルギーの向かう先。外の世界(人・活動)か、内の世界(思考・一人の時間)か。' },
+    { key:'SN', title:'S / N', desc:'情報の受け取り方。目の前の事実・実感(S)か、パターンや可能性(N)か。' },
+    { key:'TF', title:'T / F', desc:'意思決定の軸。論理的な一貫性(T)か、人への影響・気持ち(F)か。' },
+    { key:'JP', title:'J / P', desc:'物事の進め方。計画通りに進めたい(J)か、状況に応じて柔軟に変えたい(P)か。' }
+  ];
+
+  const SCENARIOS = [
+    { scene:'会議の後、雑談の中で「さっきの件、賛成とは言ってたけど、なんか少し引っかかってそうだったよね」とぽつりとつぶやいた。特に本人に確認しに行くでもなく、そのまま自分の作業に戻った。',
+      candidates:['INFJ','ISFJ','INTJ','ENFJ'], answer:'INFJ',
+      typeExplain:'言葉の裏にある感情の機微に気づく点はF、そこから相手の本音を推測する点はN寄り。確認しに行かず静かに自分の作業へ戻る様子からI。ISFJも人の変化には敏感だが、表情や態度など具体的なサインの記憶(S)で気づくことが多く、本音を"推測"するのはやや不得意な傾向。ENFJは同じ気づきでも、気になったらすぐ声をかけに行く外向性が出やすい。INTJは裏を読むが、感情よりも発言の矛盾や意図の分析に注目しがち。ただしINFJとISFJは判別が割れやすい組み合わせで、確信度はそこまで高くない。'},
+    { scene:'新しい仕事の相談をすると、「まず誰が何をいつまでにやるか決めてから始めましょう」と、その場にいた数人に向けてはっきり言い切った。',
+      candidates:['ESTJ','ISTJ','ENTJ','ESFJ'], answer:'ESTJ',
+      typeExplain:'役割と期限を先に固めたい点はJ、根拠が現実的な運用(誰が・いつ)である点はS寄り。人前ではっきり言い切る様子からE。ISTJも似た几帳面さを持つが、自分から率先して仕切るより頼まれてから淡々と対応することが多くE要素は薄い。ENTJも近いが、役割分担より先に「そもそもの狙い」を語りたがる傾向(N)がある。ESFJは同じEJだが、期限より先に「みんな大丈夫?」と人間関係を確認しがち。ここもISTJとの判別はそこまで簡単ではない。'},
+    { scene:'週末の予定を聞くと「特に決めてない、気分で」と言いながら、一人で近所を歩いて写真を撮るのが好きらしい。撮った写真を人に見せることはほとんどなく、「なんかこの光が良かった」とだけ言う。',
+      candidates:['ISFP','INFP','ISTP','ESFP'], answer:'ISFP',
+      typeExplain:'予定を決めないところはP、一人で行動する点はI。写真という感覚的な体験を「良かった」という感覚的な言葉で表す点はF寄り(ISTPなら構図やカメラ設定など仕組みの話になりやすい)。ESFPは同じSFPだが、人に見せて共有する外向性が出やすく、ここでは「人に見せることはほとんどない」ため合わない。INFPは同じFPだが、風景そのものより、そこから浮かぶ想像や意味づけ(N)を語ることが多い。ISTPとの判別はかなり難しく、確信度は高くない。'},
+    { scene:'会議で誰かが結論を急ごうとすると、「それ、逆から考えると違う結論にならない?」と割って入り、その場にいた数人を巻き込んで議論を始めた。',
+      candidates:['ENTP','INTP','ENTJ','ENFP'], answer:'ENTP',
+      typeExplain:'前提を疑う視点はN、理屈で押す姿勢はT、その場で複数人を巻き込んで議論を仕掛ける動きはE。INTPも前提を疑うが、人を巻き込むより自分の中で考え込むことが多くE要素は薄い。ENTJは同じENTだが、疑問を挟むより先に結論を出して場を仕切りたがる(J)。ENFPは同じENP系だが、理屈より「面白そう」という感覚や可能性への熱量(F寄り)が先に立つことが多い。ENFPとの判別はやや難しく、確信度はそこまで高くない。'},
+    { scene:'飲み会の途中、話が少し重くなってきたタイミングで「そういえばさ」と話題を変えて笑いを取った。そのあとは特に仕切るでもなく、自然と元の空気に戻っていった。',
+      candidates:['ESFP','ENFP','ESTP','ENTP'], answer:'ESFP',
+      typeExplain:'重い空気を変えようとする気配りはF、その場のノリで動く軽やかさはP。話題を変えたあと特に仕切らず自然に流れへ戻る様子は、新しいアイデアへ展開していくENFPよりも「今この瞬間」への感覚的な反応(S)に近い。ESTPも場を動かす行動力はあるが、空気を和らげる対人配慮よりスリルや結果を求める動機が強い傾向。ENTPは話題転換も得意だが、笑いより理屈や意外性で場をかき回すことが多い。ENFPとの判別は難しく、確信度は高くない。'},
+    { scene:'新しいやり方を提案されると、「今までのやり方でも特に問題なかった気がするけど」と少し戸惑い、「なぜ今のままじゃダメなのか」を先に確認したがった。',
+      candidates:['ISTJ','ISFJ','ESTJ','ISTP'], answer:'ISTJ',
+      typeExplain:'現状維持を好む点はS・J、変更の妥当性を理由で確認したがる点はT寄り(ISFJなら「みんなが困ってないか」など人への影響から確認することが多い)。ESTJは似ているが、戸惑うより先に自分から代案を仕切りにいくことが多くE寄り。ISTPは変化に対して淡々と受け流し、あまり戸惑いを見せない傾向がある。ISFJとの判別はやや難しく、確信度は高くない。'},
+    { scene:'グループでの決定に対して表向きは「まあいいんじゃないですか」と流したが、後で個別に話すと「実は、自分が大事にしていることとちょっと違う気がして」と本音を漏らした。',
+      candidates:['INFP','ISFP','INFJ','ENFP'], answer:'INFP',
+      typeExplain:'表向き合わせつつ、後から個別に本音を明かす様子はI。引っかかりの内容が「自分の大事にしていること」という抽象的な価値観である点はF+N寄り。ISFPも同じFPだが、価値観というより「なんとなく肌に合わない」という感覚的な違和感(S)で語ることが多い。INFJは同じINFだが、我慢して合わせるよりその場で違和感を察して発言する傾向があり、後で個別に、というよりその場で気づかれやすい。ENFPは同じNFだが、その場で素直に意見を言ってしまうことが多くI要素とはズレる。ISFPやINFJとの判別は難しく、確信度は高くない。'},
+    { scene:'トラブルが起きた瞬間、周りがまだ状況を整理している間に、もう手を動かして対応を始めていた。周りを自然と巻き込みながら動いていて、後で「なんでああしたの?」と聞かれても「なんとなく」としか答えられなかった。',
+      candidates:['ESTP','ISTP','ESFP','ESTJ'], answer:'ESTP',
+      typeExplain:'考えるより先に動く実践力はS・P、周囲を自然と巻き込みながら対応する動きはE寄り(ISTPなら一人で黙々と対処することが多い)。ESFPも行動的だが、動機が「場を良くしたい」という対人配慮(F)であることが多く、トラブル対応そのものへの反射的な動きとはやや違う。ESTJも行動は早いが、先に指示や役割分担から入りたがる(J)傾向があり、いきなり自分の手を動かすというより人を動かすことが多い。ISTPとの判別はやや難しく、確信度は高くない。'}
+  ];
+
+  const APPROACHES = {
+    INFJ: { correct:'一対一で、じっくり本音を聞く時間を作る', wrongs:['大人数の場でその場のノリに乗せて話を引き出す','結論だけ簡潔に伝えて即断即決を求める','細かい手順や期限をまず明確に決めさせる'],
+      explain:'INFJは表面的な社交より、本質的な対話の中でエネルギーを使うタイプ。一対一でじっくり話す場を用意すると信頼が深まりやすい。' },
+    ESTJ: { correct:'役割・期限・進め方を具体的に提示し、決定権を渡す', wrongs:['なんとなく空気で察してほしいと曖昧に頼む','細かい進め方は本人の自由な気分に任せる','感情面のケアだけを重視し、期限の話を後回しにする'],
+      explain:'ESTJは秩序と成果を重視するので、具体的な役割・期限を示し、そのうえで裁量を渡すと最も力を発揮する。' },
+    ISFP: { correct:'本人の好みやペースを尊重し、無理に評価や競争を持ち込まない', wrongs:['もっと人に見せて積極的にアピールするよう強く勧める','早く結果を出すよう急かして期限を細かく管理する','大勢の前で発表させて注目を集めさせる'],
+      explain:'ISFPは自分らしいペースと静かな自由を大事にする。急かしたり注目を集めさせたりすると、むしろ本来の良さが発揮されにくくなる。' },
+    ENTP: { correct:'アイデア出しの相手として頼り、反論も議論として楽しむ', wrongs:['茶々を入れないでと最初のアイデア段階で反論を止める','結論を急がせて議論の時間を削る','細かい手順書通りに進めるよう厳密に管理する'],
+      explain:'ENTPにとって反論や議論は攻撃ではなく知的な遊び。安心して意見をぶつけられる relationshipを作ると新しい発想が引き出せる。' },
+    ESFP: { correct:'場を盛り上げてくれることに感謝を伝え、深刻な話は落ち着いた場で', wrongs:['場を盛り上げようとする姿勢を不真面目だと決めつける','将来の計画を今すぐ細かく詰めさせる','人前で深刻な指摘をして空気を重くする'],
+      explain:'ESFPは今この瞬間の楽しさと人とのつながりを大切にする。深刻な話をするときは場を選ぶと受け止めてもらいやすい。' },
+    ISTJ: { correct:'変更するときは根拠と手順を明確に示し、締切は必ず守る', wrongs:['ノリや思いつきで急に方針を変える','前例や実績データを確認せず感覚で進めさせる','細かい手順を省略して大枠だけ伝える'],
+      explain:'ISTJは信頼性と一貫性を大事にする。変化を求めるときほど、理由と手順を丁寧に示すと納得して動いてくれる。' },
+    INFP: { correct:'価値観や気持ちを先に尋ね、否定するときも行動にフォーカスする', wrongs:['気にしすぎだと感情そのものを軽く扱う','価値観の話をせず結論だけ押しつける','みんなに合わせるのが一番だと同調を強く求める'],
+      explain:'INFPは自分の価値観への誠実さを大事にする。頭ごなしの否定ではなく、価値観を尋ねる姿勢が信頼につながる。' },
+    ESTP: { correct:'まず動かせる裁量を渡し、要点だけ簡潔に伝える', wrongs:['長い説明や理屈から入って納得させようとする','細かい計画書を隅々まで守らせようとする','結論を出す前に何度も話し合いの場を設ける'],
+      explain:'ESTPは行動しながら考えるタイプ。長い前置きより、まず動ける裁量を渡すほうが力を発揮しやすい。' }
+  };
+
+  let quizIdx = 0;
+  let quizScore = 0;
+  let quizStep = 1; // 1: タイプ推理, 2: 対応クイズ
+  let quizOrder = [...Array(SCENARIOS.length).keys()];
+
+  function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+  // ---------- 図鑑 ----------
+  function renderEncyclopedia(selectedCode) {
+    const panel = document.getElementById('hz-panel-ency');
+    let html = `
+      <div class="hz-axes">
+        ${AXES.map(a => `<div class="hz-axis-card"><b>${a.title}</b>${a.desc}</div>`).join('')}
+      </div>`;
+
+    ['NT','NF','SJ','SP'].forEach(g => {
+      html += `<p class="hz-group-label">${GROUP_LABEL[g]}</p><div class="hz-grid">`;
+      TYPES.filter(t => t.group === g).forEach(t => {
+        html += `
+          <div class="hz-card" data-code="${t.code}" style="--group-color:${GROUP_COLOR[g]}">
+            <span class="hz-card-code">${t.code}</span>
+            <p class="hz-card-name">${t.name}</p>
+            <p class="hz-card-desc">${t.short}</p>
+          </div>`;
+      });
+      html += '</div>';
+    });
+
+    if (selectedCode) {
+      const t = TYPES.find(x => x.code === selectedCode);
+      html += `
+        <div class="hz-detail">
+          <h3>${t.code} — ${t.name}</h3>
+          <span class="hz-code-tag">${GROUP_LABEL[t.group]}</span>
+          <div class="hz-detail-row"><span class="hz-detail-label">価値観の核</span><p class="hz-detail-text">${t.value}</p></div>
+          <div class="hz-detail-row"><span class="hz-detail-label">思考パターン</span><p class="hz-detail-text">${t.pattern}</p></div>
+          <div class="hz-detail-row"><span class="hz-detail-label">口癖</span><p class="hz-detail-text hz-quote">${t.quote}</p></div>
+          <div class="hz-detail-row"><span class="hz-detail-label">接し方のコツ</span><p class="hz-detail-text">${t.good}</p></div>
+          <div class="hz-detail-row"><span class="hz-detail-label">やりがちなNG</span><p class="hz-detail-text hz-ng">${t.bad}</p></div>
+          <button class="hz-close-btn" id="hz-close-detail">閉じる</button>
+        </div>`;
+    }
+
+    panel.innerHTML = html;
+    panel.querySelectorAll('.hz-card').forEach(card => {
+      card.addEventListener('click', () => renderEncyclopedia(card.dataset.code));
+    });
+    const closeBtn = document.getElementById('hz-close-detail');
+    if (closeBtn) closeBtn.addEventListener('click', () => renderEncyclopedia(null));
+  }
+
+  // ---------- クイズ ----------
+  function renderQuiz() {
+    const panel = document.getElementById('hz-panel-quiz');
+    if (quizIdx >= quizOrder.length) {
+      panel.innerHTML = `
+        <div class="hz-scene">観察終了。${quizOrder.length}問中 <strong>${quizScore}問</strong> 正解でした。(タイプ推理・対応クイズ合わせて満点は${quizOrder.length * 2}問)</div>
+        <div class="hz-nav-row"><button class="hz-btn" id="hz-restart">もう一度観察する</button></div>`;
+      document.getElementById('hz-restart').addEventListener('click', () => {
+        quizIdx = 0; quizScore = 0; quizStep = 1;
+        quizOrder = shuffle([...Array(SCENARIOS.length).keys()]);
+        renderQuiz();
+      });
+      return;
+    }
+    const s = SCENARIOS[quizOrder[quizIdx]];
+
+    if (quizStep === 1) {
+      renderStep1(panel, s);
+    } else {
+      renderStep2(panel, s);
+    }
+  }
+
+  function renderStep1(panel, s) {
+    const options = shuffle(s.candidates);
+    let html = `<p class="hz-quiz-meta">観察 ${quizIdx + 1} / ${quizOrder.length} — Q1. このタイプは?</p>`;
+    html += `<div class="hz-scene">${s.scene}</div>`;
+    html += '<div class="hz-options">';
+    options.forEach(code => {
+      const t = TYPES.find(x => x.code === code);
+      html += `<button class="hz-opt" data-code="${code}">${code} — ${t.name}</button>`;
+    });
+    html += '</div><div id="hz-quiz-reveal"></div>';
+    html += '<div class="hz-nav-row"><button class="hz-btn ghost" id="hz-skip">スキップ</button></div>';
+    panel.innerHTML = html;
+
+    panel.querySelectorAll('.hz-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const chosen = btn.dataset.code;
+        const correct = s.answer;
+        panel.querySelectorAll('.hz-opt').forEach(b => {
+          b.disabled = true;
+          if (b.dataset.code === correct) b.classList.add('correct');
+          else if (b.dataset.code === chosen) b.classList.add('wrong');
+        });
+        if (chosen === correct) quizScore++;
+        const t = TYPES.find(x => x.code === correct);
+        document.getElementById('hz-quiz-reveal').innerHTML = `
+          <div class="hz-reveal"><strong>正解: ${correct} — ${t.name}。</strong> ${s.typeExplain}</div>
+          <div class="hz-nav-row"><button class="hz-btn" id="hz-next">次へ:この人への対応を考える</button></div>`;
+        document.getElementById('hz-next').addEventListener('click', () => { quizStep = 2; renderQuiz(); });
+      });
+    });
+    document.getElementById('hz-skip').addEventListener('click', () => { quizIdx++; quizStep = 1; renderQuiz(); });
+  }
+
+  function renderStep2(panel, s) {
+    const t = TYPES.find(x => x.code === s.answer);
+    const approach = APPROACHES[s.answer];
+    const options = shuffle([
+      { text: approach.correct, correct: true },
+      ...approach.wrongs.map(w => ({ text: w, correct: false }))
+    ]);
+    let html = `<p class="hz-quiz-meta">観察 ${quizIdx + 1} / ${quizOrder.length} — Q2. ${s.answer}(${t.name})への最適な対応は?</p>`;
+    html += `<div class="hz-scene">${s.scene}</div>`;
+    html += '<div class="hz-options">';
+    options.forEach((opt, i) => {
+      html += `<button class="hz-opt" data-idx="${i}" data-correct="${opt.correct}">${opt.text}</button>`;
+    });
+    html += '</div><div id="hz-quiz-reveal"></div>';
+    html += '<div class="hz-nav-row"><button class="hz-btn ghost" id="hz-skip">スキップ</button></div>';
+    panel.innerHTML = html;
+
+    panel.querySelectorAll('.hz-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const chosenCorrect = btn.dataset.correct === 'true';
+        panel.querySelectorAll('.hz-opt').forEach(b => {
+          b.disabled = true;
+          if (b.dataset.correct === 'true') b.classList.add('correct');
+          else if (b === btn) b.classList.add('wrong');
+        });
+        if (chosenCorrect) quizScore++;
+        document.getElementById('hz-quiz-reveal').innerHTML = `
+          <div class="hz-reveal">${approach.explain}</div>
+          <div class="hz-nav-row"><button class="hz-btn" id="hz-next">次の観察へ</button></div>`;
+        document.getElementById('hz-next').addEventListener('click', () => { quizIdx++; quizStep = 1; renderQuiz(); });
+      });
+    });
+    document.getElementById('hz-skip').addEventListener('click', () => { quizIdx++; quizStep = 1; renderQuiz(); });
+  }
+
+  // ---------- 観察日記 ----------
+  const LOG_KEY = 'hito-zukan-mbti:entries';
+
+  async function loadEntries() {
+    try {
+      const res = await window.storage.get(LOG_KEY, false);
+      return res ? JSON.parse(res.value) : [];
+    } catch (e) { return []; }
+  }
+  async function saveEntries(entries) {
+    try { await window.storage.set(LOG_KEY, JSON.stringify(entries), false); return true; }
+    catch (e) { console.error('保存に失敗しました', e); return false; }
+  }
+
+  async function renderLog() {
+    const panel = document.getElementById('hz-panel-log');
+    panel.innerHTML = '<p class="hz-loading">読み込み中…</p>';
+    const entries = await loadEntries();
+
+    const counts = {};
+    TYPES.forEach(t => counts[t.code] = 0);
+    entries.forEach(e => { if (counts[e.type] !== undefined) counts[e.type]++; });
+
+    let html = `
+      <div class="hz-log-form">
+        <label>今日気になった観察を書き留める</label>
+        <textarea id="hz-log-text" placeholder="例)会議で〇〇さんが△△と言っていた。事実確認を優先していて、SJ寄りに見えた。"></textarea>
+        <label>近いタイプは?</label>
+        <select id="hz-log-type">
+          ${['NT','NF','SJ','SP'].map(g => `<optgroup label="${GROUP_LABEL[g]}">${TYPES.filter(t=>t.group===g).map(t=>`<option value="${t.code}">${t.code} — ${t.name}</option>`).join('')}</optgroup>`).join('')}
+          <option value="unknown">まだわからない</option>
+        </select>
+        <div class="hz-nav-row" style="justify-content:flex-start">
+          <button class="hz-btn" id="hz-log-save">記録する</button>
+        </div>
+      </div>
+      <div class="hz-stats">
+        ${TYPES.filter(t => counts[t.code] > 0).map(t => `<span class="hz-stat">${t.code} ${counts[t.code]}件</span>`).join('') || '<span class="hz-stat">まだ記録なし</span>'}
+      </div>
+      <div id="hz-log-list">`;
+
+    if (entries.length === 0) {
+      html += '<p class="hz-empty">まだ記録がありません。気づいたことを書き留めてみましょう。</p>';
+    } else {
+      [...entries].reverse().forEach(e => {
+        const t = TYPES.find(x => x.code === e.type);
+        const label = t ? `${t.code} — ${t.name}` : 'タイプ未定';
+        const date = new Date(e.createdAt).toLocaleDateString('ja-JP');
+        html += `
+          <div class="hz-entry">
+            <div class="hz-entry-top"><span class="hz-entry-type">${label}</span><span class="hz-entry-date">${date}</span></div>
+            <p class="hz-entry-text">${escapeHtml(e.text)}</p>
+            <button class="hz-entry-del" data-id="${e.id}">削除</button>
+          </div>`;
+      });
+    }
+    html += '</div>';
+    panel.innerHTML = html;
+
+    document.getElementById('hz-log-save').addEventListener('click', async () => {
+      const textEl = document.getElementById('hz-log-text');
+      const typeEl = document.getElementById('hz-log-type');
+      const text = textEl.value.trim();
+      if (!text) return;
+      const newEntries = await loadEntries();
+      newEntries.push({ id: Date.now().toString(), text, type: typeEl.value, createdAt: Date.now() });
+      const ok = await saveEntries(newEntries);
+      if (ok) renderLog(); else alert('記録の保存に失敗しました。もう一度お試しください。');
+    });
+
+    panel.querySelectorAll('.hz-entry-del').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const cur = await loadEntries();
+        const updated = cur.filter(e => e.id !== id);
+        const ok = await saveEntries(updated);
+        if (ok) renderLog();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- タブ切り替え ----------
+  const tabs = root.querySelectorAll('.hz-tab');
+  const panels = {
+    ency: document.getElementById('hz-panel-ency'),
+    quiz: document.getElementById('hz-panel-quiz'),
+    log: document.getElementById('hz-panel-log')
+  };
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      Object.values(panels).forEach(p => p.hidden = true);
+      panels[tab.dataset.tab].hidden = false;
+      if (tab.dataset.tab === 'log') renderLog();
+    });
+  });
+
+  renderEncyclopedia(null);
+  renderQuiz();
+})();
+</script>
+
+</body>
+</html>
